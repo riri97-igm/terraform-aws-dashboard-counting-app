@@ -1,45 +1,50 @@
 
-# 🚀 Terraform AWS Dashboard-Counting App
+# 🚀 Terraform AWS Dashboard-Counting App (Manual Provisioning)
 
-This project provisions a simple microservices architecture on AWS using Terraform.
+This project provisions a secure AWS 2-tier architecture using Terraform with **manual resource definition (no external modules)**.
 
 It deploys:
-**Dashboard service** (public-facing)
-**Counting service** (private backend)
+**public Dashboard service**
+**private Counting backend service**
 
-The Dashboard communicates with the Counting service via private network.
+The Dashboard communicates with the Counting service via private network inside a VPC.
 
 ---
 
 ## 🧱 Architecture Overview
 
+
             🌐 Internet
                  │
                  ▼
-        ┌──────────────────┐
-        │  Public Subnet   │
-        │                  │
-        │  Dashboard VM    │
-        │  Port: 9002      │
-        └────────┬─────────┘
-                 │ (HTTP)
-                 ▼
-        ┌──────────────────┐
-        │  Private Subnet  │
-        │                  │
-        │  Counting VM     │
-        │  Port: 9003      │
-        └──────────────────┘
+        ┌──────────────────────┐
+        │   Public Subnet      │
+        │                      │
+        │  EC2: Dashboard      │
+        │  Port: 9002          │
+        └──────────┬───────────┘
+                   │ HTTP
+                   ▼
+        ┌──────────────────────┐
+        │   Private Subnet     │
+        │                      │
+        │  EC2: Counting       │
+        │  Port: 9003          │
+        └──────────────────────┘
 
+---
 
 ## ⚙️ Tech Stack
 
 - Terraform
 - AWS EC2
-- AWS VPC (public + private subnet)
+- AWS VPC (Manual configuration)
+- Internet Gateway (IGW)
+- NAT Gateway
+- Route Tables
 - Security Groups
-- Systemd services
 - Bash (user_data scripts)
+- Systemd services
 
 ---
 
@@ -61,8 +66,6 @@ The Dashboard communicates with the Counting service via private network.
 
 ├── vpc.tf
 
-├── terraform.tfvars
-
 ├── scripts/
 
 │   ├── dashboard-service.sh
@@ -70,73 +73,85 @@ The Dashboard communicates with the Counting service via private network.
 │   └── counting-service.sh
 
 
+---
+
+## 🛠 Provisioning Approach (Manual)
+
+This project manually defines all AWS resources:
+
+- VPC
+- Public and private subnets
+- Internet Gateway
+- NAT Gateway
+- Route tables
+- Security groups
+- EC2 instances
+
+No Terraform modules are used.
+
+---
 
 ## 🔑 Key Features
 
-- Uses **dynamic Ubuntu AMI** (no hardcoding)
-- Uses **existing AWS key pair** (no local `.pub` needed)
-- Dashboard connects to counting via **private IP**
-- Infrastructure is modular and reusable using **prefix**
-- Services run automatically using **systemd**
+- Fully manual AWS infrastructure setup
+- Strong AWS networking design (public + private subnet)
+- Secure service-to-service communication using private IP
+- Automated EC2 setup using `user_data`
+- Services managed with systemd
+- Clean Terraform structure
+
+---
+
+## 📋 Prerequisites
+
+- Terraform installed
+- AWS CLI configured
+- AWS credentials (profile)
+
+---
+
+## ⚙️ Configuration
+
+This project uses Terraform variables defined in `variables.tf`.
+
+You can provide values in these ways:
+
+- Default values in `variables.tf`
+- CLI input during apply
+- Using `-var` flag
+
+Example:
+
+```bash
+terraform apply -var="prefix=dashboard-counting"
+````
 
 ---
 
 ## 🚀 How to Run
 
-### 1. Prerequisites
-
-- Terraform installed
-- AWS CLI configured
-- Existing EC2 key pair in AWS
-
----
-
-### 2. Configure variables
-
-Edit `terraform.tfvars`:
-
-```hcl
-prefix         = "dashboard-counting"
-region         = "ap-southeast-1"
-instance_type  = "t3.micro"
-key_name       = "your-keypair-name"
-my_ip_cidr     = "YOUR_IP/32"
-
----
-
-### 3. Initialize Terraform
-
 ```bash
 terraform init
-```
-
----
-
-### 4. Plan
-
-```bash
+terraform validate
 terraform plan
-```
-
----
-
-### 5. Apply
-
-```bash
 terraform apply
 ```
 
+If variables are required:
+
+```bash
+terraform apply -var="prefix=dashboard-counting"
+```
+
 ---
 
-### 6. Access Application
-
-After apply:
+## 🌐 Access Application
 
 ```bash
 terraform output dashboard_url
 ```
 
-Open in browser:
+Open:
 
 ```
 http://<public_ip>:9002
@@ -146,15 +161,15 @@ http://<public_ip>:9002
 
 ## 🔐 Security Design
 
-* Dashboard:
+### Dashboard (Public)
 
-  * Public access (port 9002)
-  * SSH restricted to your IP
+* Accessible from internet (port 9002)
+* SSH restricted to your IP
 
-* Counting:
+### Counting (Private)
 
-  * Private subnet only
-  * Only accessible from Dashboard (SG-to-SG rule)
+* No public IP
+* Only accessible from Dashboard via Security Group
 
 ---
 
@@ -163,29 +178,12 @@ http://<public_ip>:9002
 ### Dashboard Service
 
 * Runs on port **9002**
-* Calls Counting service via private IP
+* Calls Counting service using private IP
 
 ### Counting Service
 
 * Runs on port **9003**
 * Internal backend service
-
----
-
-## 🛠 Scripts
-
-* Dashboard setup script
-
-
-* Counting setup script
-
-
-Both scripts:
-
-* install dependencies
-* download binaries
-* configure systemd
-* auto-start services
 
 ---
 
@@ -205,25 +203,54 @@ counting_private_ip = "172.16.x.x"
 
 ---
 
+## 🛠 Setup Scripts
+
+### Dashboard Script
+
+* Installs dependencies
+* Downloads dashboard service
+* Configures systemd
+* Connects to counting service via private IP
+
+### Counting Script
+
+* Installs dependencies
+* Downloads counting service
+* Configures systemd
+* Runs backend service
+
+---
+
 ## 🧠 Summary
 
 This project demonstrates:
 
-* Infrastructure as Code (Terraform)
-* Secure AWS architecture (public + private subnet)
-* Service-to-service communication
-* Automation with user_data
-* Clean and reusable Terraform design
+* Deep understanding of AWS networking (VPC, subnets, routing)
+* Manual infrastructure provisioning using Terraform
+* Secure architecture using public/private subnet isolation
+* Service-to-service communication via private networking
+* Automation using user_data and systemd
 
 ---
 
 ## 📌 Future Improvements
 
-* Add Load Balancer (ALB)
+* Refactor into Terraform modules
+* Add Application Load Balancer (ALB)
 * Add Auto Scaling Group
-* Use Terraform modules
-* Add CI/CD pipeline
-
-```
+* Implement CI/CD pipeline
 
 ---
+
+## 🔗 References
+
+### Terraform
+
+* [https://developer.hashicorp.com/terraform/docs](https://developer.hashicorp.com/terraform/docs)
+* [https://registry.terraform.io/providers/hashicorp/aws/latest/docs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs)
+
+### AWS
+
+* [https://docs.aws.amazon.com/ec2/](https://docs.aws.amazon.com/ec2/)
+* [https://docs.aws.amazon.com/vpc/](https://docs.aws.amazon.com/vpc/)
+
