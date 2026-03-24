@@ -46,6 +46,7 @@ The Dashboard communicates with the Counting service via private network.
 ## 📁 Project Structure
 
 .
+
 ├── data.tf
 
 ├── instance.tf
