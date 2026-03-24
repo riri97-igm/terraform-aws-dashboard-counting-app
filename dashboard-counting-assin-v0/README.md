@@ -47,15 +47,25 @@ The Dashboard communicates with the Counting service via private network.
 
 .
 ├── data.tf
+
 ├── instance.tf
+
 ├── keypair.tf
+
 ├── outputs.tf
+
 ├── variables.tf
+
 ├── versions.tf
+
 ├── vpc.tf
+
 ├── terraform.tfvars
+
 ├── scripts/
+
 │   ├── dashboard-service.sh
+
 │   └── counting-service.sh
 
 
