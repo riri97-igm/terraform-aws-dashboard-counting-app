@@ -1,3 +1,7 @@
+################################################################################
+# VPC
+################################################################################
+
 module "vpc" {
   source = "terraform-aws-modules/vpc/aws"
 
@@ -18,9 +22,14 @@ module "vpc" {
   }
 }
 
+################################################################################
+# Security Groups
+################################################################################
+
 resource "aws_security_group" "dashboard_vm" {
   vpc_id = module.vpc.vpc_id
   name   = "SG-dashboard"
+
   tags = {
     Name = "SG-dashboard"
   }
@@ -47,17 +56,17 @@ resource "aws_security_group" "dashboard_vm" {
   }
 
   egress {
-    from_port       = 0
-    to_port         = 0
-    protocol        = "-1"
-    cidr_blocks     = ["0.0.0.0/0"]
-    prefix_list_ids = []
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 }
 
 resource "aws_security_group" "counting_vm" {
   vpc_id = module.vpc.vpc_id
   name   = "SG-counting"
+
   tags = {
     Name = "SG-counting"
   }
@@ -77,18 +86,21 @@ resource "aws_security_group" "counting_vm" {
   }
 
   egress {
-    from_port       = 0
-    to_port         = 0
-    protocol        = "-1"
-    cidr_blocks     = ["0.0.0.0/0"]
-    prefix_list_ids = []
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 }
+
+################################################################################
+# Data Sources (AMI)
+################################################################################
 
 data "aws_ami" "ubuntu" {
   most_recent = true
 
-  owners = ["099720109477"] # Canonical
+  owners = ["099720109477"]
 
   filter {
     name   = "name"
@@ -100,6 +112,10 @@ data "aws_ami" "ubuntu" {
     values = ["hvm"]
   }
 }
+
+################################################################################
+# EC2 Instances
+################################################################################
 
 resource "aws_instance" "dashboard_vm" {
   ami                         = data.aws_ami.ubuntu.id
@@ -130,5 +146,3 @@ resource "aws_instance" "counting_vm" {
     Name = "counting-vm"
   }
 }
-
-

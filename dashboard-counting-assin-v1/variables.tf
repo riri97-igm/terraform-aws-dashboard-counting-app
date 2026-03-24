@@ -1,94 +1,118 @@
+################################################################################
+# General Configuration
+################################################################################
+
 variable "region" {
   type        = string
-  description = "The region where the resources are created."
+  description = "AWS region where resources will be created"
   default     = "ap-southeast-1"
 }
 
 variable "profile" {
   type        = string
-  description = "The region where the resources are created."
+  description = "AWS CLI profile to use"
   default     = "master-programmatic-admin"
 }
 
 variable "prefix" {
-  description = "Prefix for naming resources"
+  description = "Prefix for naming all resources"
   type        = string
 }
 
+################################################################################
+# Networking - VPC
+################################################################################
+
 variable "vpc_name" {
-  description = "Name to be used on all the resources as identifier"
+  description = "Name to be used on all VPC resources"
   type        = string
   default     = ""
 }
 
 variable "vpc_cidr" {
-  description = "(Optional) The IPv4 CIDR block for the VPC. CIDR can be explicitly set or it can be derived from IPAM using `ipv4_netmask_length` & `ipv4_ipam_pool_id`"
+  description = "CIDR block for the VPC"
   type        = string
   default     = ""
 }
 
 variable "azs" {
-  description = "A list of availability zones names or ids in the region"
+  description = "List of availability zones"
   type        = list(string)
   default     = []
 }
 
-variable "my_ip_cidr" {
-  description = "Your public IP for SSH access"
-  type        = string
-  default     = ""
+################################################################################
+# Networking - Subnets
+################################################################################
+
+variable "public_subnets" {
+  description = "List of public subnet CIDRs"
+  type        = list(string)
+  default     = []
 }
 
 variable "private_subnets" {
-  description = "A list of private subnets inside the VPC"
+  description = "List of private subnet CIDRs"
   type        = list(string)
   default     = []
 }
 
 variable "private_subnet_names" {
-  description = "Explicit values to use in the Name tag on private subnets. If empty, Name tags are generated"
-  type        = list(string)
-  default     = []
-}
-
-variable "public_subnets" {
-  description = "A list of public subnets inside the VPC"
+  description = "Optional names for private subnets"
   type        = list(string)
   default     = []
 }
 
 variable "map_public_ip_on_launch" {
-  description = "Specify true to indicate that instances launched into the subnet should be assigned a public IP address. Default is `false`"
+  description = "Assign public IP to instances in public subnet"
   type        = bool
   default     = false
 }
 
+################################################################################
+# Networking - Gateways
+################################################################################
+
 variable "enable_nat_gateway" {
-  description = "Should be true if you want to provision NAT Gateways for each of your private networks"
+  description = "Enable NAT Gateway for private subnets"
   type        = bool
   default     = false
 }
 
 variable "single_nat_gateway" {
-  description = "Should be true if you want to provision a single shared NAT Gateway across all of your private networks"
+  description = "Use single NAT Gateway"
   type        = bool
   default     = false
 }
 
 variable "create_igw" {
-  description = "Controls if an Internet Gateway is created for public subnets and the related routes that connect them"
+  description = "Create Internet Gateway for public subnets"
   type        = bool
   default     = true
 }
 
+################################################################################
+# Security
+################################################################################
+
+variable "my_ip_cidr" {
+  description = "Your public IP (CIDR) for SSH access"
+  type        = string
+  default     = ""
+}
+
+################################################################################
+# Compute - EC2
+################################################################################
+
 variable "instance_type" {
-  description = "ec2 instance type"
+  description = "EC2 instance type"
   type        = string
   default     = ""
 }
 
 variable "key_name" {
-  description = "The name of the key pair to use for SSH access to the EC2 instances."
+  description = "Key pair name for EC2 SSH access"
   type        = string
   default     = ""
 }
